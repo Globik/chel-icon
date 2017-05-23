@@ -8,20 +8,18 @@ const app = express();
 
 app.use(express.static('public'));
 const bserver=http.createServer(app);
-const webPort = 5000;
+const webPort = process.env.PORT || 5000;
  bserver.listen(webPort, function(){
     console.log('Web server start. http://localhost:' + webPort + '/');
+	 console.log('Or webserver start on: ',process.env.HOSTNAME);
 });
 const wsServer=new WebSocket.Server({server:bserver});
-const obi =require('proxy-observe');
+//const obi =require('proxy-observe');
 const mediasoup = require('mediasoup');
 const RTCPeerConnection = mediasoup.webrtc.RTCPeerConnection;
 const RTCSessionDescription = mediasoup.webrtc.RTCSessionDescription;
 const roomOptions = require('./data/options').roomOptions;
 const peerCapabilities = require('./data/options').peerCapabilities;
-var lui={mui:9};
-
-lui.foo="bar";
 //const usePlanBFlag = true;
 
 let selfId = null;
@@ -29,12 +27,20 @@ let soupRoom = null;
 let Connections = new Array();
 let clientIndex = 0;
 let droom=new Map();
+/*
 Connections=Object.observe(Connections,(ch)=>{
 console.log('changes: ', ch)
 })
+*/
 // ----- mediasoup ----
 var boom=new EventEmitter();
-let server = mediasoup.Server({logLevel:"debug"});
+let server = mediasoup.Server({logLevel:"debug",
+							  rtcIPv4:true,
+							   rtcIPv6:false,
+							  rtcAnnouncedIPv4:null,
+							  rtcAnnouncedIPv6:null,
+							  /* rtcMinPort:40000,rtcMaxPort:49999*/
+							  });
 server.on('newroom',(r)=>{
 console.log('new room: ',r.id);
 	boom.emit('fuck',{room_id:r.id});
