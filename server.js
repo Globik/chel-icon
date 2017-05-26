@@ -8,7 +8,7 @@ const app = express();
 
 app.use(express.static('public'));
 const bserver=http.createServer(app);
-const webPort = process.env.PORT || 5000;
+const webPort =  5000;
  bserver.listen(webPort, function(){
     console.log('Web server start. http://localhost:' + webPort + '/');
 	 console.log('Or webserver start on: ',process.env.HOSTNAME);
@@ -35,10 +35,10 @@ console.log('changes: ', ch)
 // ----- mediasoup ----
 var boom=new EventEmitter();
 let server = mediasoup.Server({logLevel:"debug",
-							  rtcIPv4:true,
-							   rtcIPv6:false,
-							  rtcAnnouncedIPv4:null,
-							  rtcAnnouncedIPv6:null,
+							  //rtcIPv4:true,
+							 //  rtcIPv6:false,
+							 // rtcAnnouncedIPv4:null,
+							 // rtcAnnouncedIPv6:null,
 							  /* rtcMinPort:40000,rtcMaxPort:49999*/
 							  });
 server.on('newroom',(r)=>{

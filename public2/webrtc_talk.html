@@ -1,32 +1,44 @@
-<!doctype html>
-<html>
-<head>
- <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
- <title>mediasoup 1 way talk</title>
-</head>
+<html><head><title>rtc_talk_alice</title></head>
 <body>
-  mediasoup 1 way talker(upstream)<br>
-	<b>Owner:</b><span id="owner">true</span><br>
-	<b>current room: </b><span id="curentroom"></span>
-	<b>Room name:</b><input type="text" id="roomname" value="Alice"/>
-	<br><button onclick="createroom();">create room</button>
-	<br><button onclick="deleteroom();">delete room</button>
-	<h4>List of rooms: </h4>
-	<div id="roomslist"></div>
-	<hr>
-  <button id="start_video_button" onclick="startVideo();">Start Video</button>
-  <button id="stop_video_button" onclick="stopVideo();">Stop Video</button>
+	<a href="/">home</a><br>
+	<a href="/webrtc_watch.html" target="_blank">webrtc_watch.html</a><br>
+<h3>Talk. Alice</h3>
+<b>Owner:</b><span id="owner">true</span><br>
+<b>current room: </b><span id="curentroom"></span><br>
+<b>current user:</b><input type="text" id="username" placeholder="your name" value="Balice"/><br>
+<b>Room name:</b><input type="text" id="roomname" value="Alice"/>
+<br><button onclick="createroom();">create room</button>
+<br><button onclick="deleteroom();">delete room</button>
+<b>websocket: </b><span id="wsout"></span>
+<h4>List of rooms: </h4>
+<div id="roomslist"></div>
+<hr>
+<button id="start_video_button" onclick="startVideo();">Start Video</button>
+<button id="stop_video_button" onclick="stopVideo();">Stop Video</button>
   &nbsp;
-  <button id="connect_button"  onclick="connect();">Connect</button>
-  <button id="disconnect_button"  onclick="dissconnect();">Disconnect</button> 
-  <input type="checkbox" id="plan_b_check" >planB
-  <div>
+<button id="connect_button"  onclick="connect();">Connect</button>
+<button id="disconnect_button"  onclick="dissconnect();">Disconnect</button> 
+<input type="checkbox" id="plan_b_check" >planB<br>
+<h4>user list</h4>
+<div id="userlist"></div>
+		
+<form name="publish">
+<input type="text" name="message">
+<input type="submit" value="send to all">
+</form>
+<form name="mepublish">
+<input type="text" name="message">
+<input type="submit" value="send for me only">
+</form>
+<span id="out"></span><br>
+<div>
     local video<br />
     <video id="local_video" autoplay style="width: 160px; height: 120px; border: 1px solid black;"></video>
     <span id="state_span"></span>
-  </div>
-</body>
-<script type="text/javascript">
+</div>
+	
+		
+<script>
   const useTrickleICE = false;
   let localVideo = document.getElementById('local_video');
   let stateSpan = document.getElementById('state_span');
@@ -43,67 +55,117 @@
     document.getElementById('plan_b_check').checked = true;
   }
   // -------- websocket ----  
-  let wsUrl = 'ws://localhost:5000/';
-	var loc1=location.hostname+':'+location.port;
-	var loc2=location.hostname;
-	var loc3=loc1 ||  loc2;
-	var newuri;
-	if(window.location.protocol="https:"){
-	newuri='wss:';
-	}else{
-	newuri='ws:';
-	}
-  let ws = new WebSocket(newuri+'//'+loc3);
-  ws.onopen = function(evt) {
-    console.log('ws open()');
+var clientId=0;
+var myusername=null;
+var name,connecteduser;
+var targetusername=null;
+let wsUrl = 'ws://localhost:5000/alice';
+let ws = new WebSocket(wsUrl);
+ ws.onopen = function(evt) {
+ console.log('ws open()');
+ wsout.innerHTML='websocket opened';
   };
-  ws.onerror = function(err) {
-    console.error('ws onerror() ERR:', err);
+ws.onerror = function(err) {
+console.error('ws onerror() ERR:', err);
+wsout.innerHTML=err;
   };
-  ws.onmessage = function(evt) {
-    console.log('ws onmessage() data:', evt.data);
-    let message = JSON.parse(evt.data);
-    if (message.type === 'response') {
-      // --- not used ----
-      console.warn('NOT USED');
-    }else if(message.type==='genaurum'){
-		var sr='';
-		sr+='<li><span data-pid="'+message.roomid+'">'+message.roomname+'</span>';
-		roomslist.innerHTML+=sr;
-	
-	}else if(message.type==='rooming'){
-	console.log('type rooming: '+evt.data);
-	}else
-    if (message.type === 'offer') {
-      // -- got offer ---
-      console.log('Received offer ...');
-      let offer = new RTCSessionDescription(message);
-      setOffer(offer);
-    }
-    else if (message.type === 'answer') {
-      // --- got answer ---
-      console.log('Received answer ...');
-      console.warn('NOT USED');
-    }else if(message.type==='goodbyeroom'){
-		console.log(evt.data);
-	goodbyeroom(message.vid);
-	}else if(message.type='error'){
-	console.warn(evt.data);
-	}else{console.warn('unknown message type: ',message.type);}
-  };
+ws.onclose=function(){wsout.innerHTML='websocket closed';}
   
-  function getUsePlanB() {
-    let checkbox = document.getElementById('plan_b_check');
-    return (checkbox.checked === true);
-  }
+ws.onmessage = function(evt) {
+//console.log('ws onmessage() data:', evt.data);
+let message = JSON.parse(evt.data);
+if(message.type==="id"){
+clientId=message.id;
+setusername(ws);
+}else if (message.type === 'response') {
+// --- not used ----
+console.warn('NOT USED');
+}else if(message.type==="username"){
+console.log("case username: "+evt.data);
+}else if(message.type==="message"){
+out.innerHTML+=evt.data+'<br>';
+}else if(message.type==="userlist"){
+console.log("case userlist: "+evt.data);
+var si='';
+message.users.forEach(function(el,i){
+si+='<li><span onclick="callrtc(this);">'+el.username+'</span></li>';
+})
+userlist.innerHTML=si;
+
+}else if(message.type==='genaurum'){
+console.warn('On genaurum: ',evt.data);
+var sr='';
+sr+='<li><span data-pid="'+message.roomid+'">'+message.roomname+'</span>';
+roomslist.innerHTML+=sr;
+	
+}else if(message.type==='roomcreated'){
+console.warn('On roomcreated: ',evt.data);
+}else if(message.type==='rooming'){
+console.log('type rooming: '+evt.data);
+}else
+if (message.type === 'offer') {
+      // -- got offer ---
+console.log('Received offer ...');
+let offer = new RTCSessionDescription(message);
+setOffer(offer);
+}
+else if (message.type === 'answer') {
+      // --- got answer ---
+console.log('Received answer ...');
+console.warn('NOT USED');
+}else if(message.type==='goodbyeroom'){
+	if(owner.textContent==="true"){
+console.log(evt.data);
+goodbyeroom(message.vid);
+	}
+}else if(message.type==='error'){
+console.warn('on error: ',evt.data);
+}else if(message.type==='createroom'){
+console.error('on createroom: ',evt.data);
+}else if(message.type==='roomremove'){
+	if(owner.textContent==="false"){
+console.warn('roomremove: ',evt.data);
+	}
+}else{console.warn('unknown message type: ',message.type);}
+};
+  
+function setusername(s){
+myusername=document.getElementById("username").value;
+s.send(JSON.stringify({name:myusername,id:clientId,type:"username",owner:owner.textContent}));
+}
+	
+document.forms.publish.onsubmit=function(){
+var outm={};
+outm.msg=this.message.value;
+outm.id=clientId;
+outm.type="message";
+ws.send(JSON.stringify(outm));
+return false;
+}
+
+document.forms.mepublish.onsubmit=function(){
+var outm={};
+outm.msg=this.message.value;
+outm.name=myusername;
+outm.id=clientId;
+outm.type="message";
+outm.target=username.value;
+ws.send(JSON.stringify(outm));
+return false
+}
+	
+function getUsePlanB() {
+let checkbox = document.getElementById('plan_b_check');
+return (checkbox.checked === true);
+}
   // ---------------------- media handling ----------------------- 
   // start local video
-  function startVideo() {
-    getDeviceStream({video: true, audio: true})
-    .then(function (stream) { // success
-      localStream = stream;
-      logStream('localstream', stream);
-      playVideo(localVideo, stream);
+function startVideo() {
+getDeviceStream({video: true, audio: true})
+.then(function (stream) { // success
+localStream = stream;
+logStream('localstream', stream);
+playVideo(localVideo, stream);
       
       updateButtons();
     }).catch(function (error) { // error
@@ -134,8 +196,7 @@
     if ('getUserMedia' in navigator.mediaDevices) {
       console.log('navigator.mediaDevices.getUserMadia');
       return navigator.mediaDevices.getUserMedia(option);
-    }
-    else {
+    }else {
       console.log('wrap navigator.getUserMadia with Promise');
       return new Promise(function(resolve, reject){    
         navigator.getUserMedia(option,
@@ -177,15 +238,12 @@
     console.log('sending SDP:', jsonSDP);
     sendJson(jsonSDP);
   }
-  function sendJson(json) {
-    // -- socket.io --
-    //socket.json.send(json);
-    // --- websocket --
-    const message = JSON.stringify(json);
-    ws.send(message);  
+function sendJson(json) {
+const message = JSON.stringify(json);
+ws.send(message);  
   }
-  // ---------------------- connection handling -----------------------
-  function prepareNewConnection() {
+  // ----------------------
+function prepareNewConnection() {
     let pc_config = {"iceServers":[]};
     let peer = new RTCPeerConnection(pc_config);
     // --- on get remote stream ---
@@ -350,26 +408,28 @@
     });
   }
 	
-	function createroom(){
-		console.log('create room');
-	if(owner.textContent=='true'){
-		console.log('sending create room');
-	sendJson({type:"createroom",roomname:roomname.value,owner:owner.textContent});
-		curentroom.textContent=roomname.value;
-	}
-	}
-  function deleteroom(){
-  if(curentroom.textContent){
-  sendJson({type:'removeroom',roomname:curentroom.textContent,owner:owner.textContent})
-  }else{alert('what a room to delete?');}
-  }
-	function goodbyeroom(vid){
-	curentroom.textContent='';
-	var bud=document.querySelector('[data-pid="'+vid+'"]');
-		//alert(bud.textContent);
-		bud.remove();
+function createroom(){
+console.log('create room');
+if(owner.textContent=='true'){
+console.log('sending create room');
+sendJson({type:"createroom",roomname:roomname.value,owner:owner.textContent,id:clientId});
+curentroom.textContent=roomname.value;
+}
+}
 	
-	}
+function deleteroom(){
+if(curentroom.textContent){
+sendJson({type:'removeroom',roomname:curentroom.textContent,owner:owner.textContent,id:clientId})
+}else{alert('what a room to delete?');}
+}
+function goodbyeroom(vid){
+if(vid){
+curentroom.textContent='';
+var bud=document.querySelector('[data-pid="'+vid+'"]');
+//alert(bud.textContent);
+bud.remove();
+}
+}
   // close PeerConnection
   function dissconnect() {
     sendJson({type: "bye",roomname:roomname.value});
@@ -444,4 +504,5 @@
   updateButtons();
   console.log('=== ready ==='); 
 </script>
-</html>
+
+	</body></html>
