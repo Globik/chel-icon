@@ -10,10 +10,9 @@ app.use(express.static('public3'));
 const bserver=http.createServer(app);
 const webPort = 5000;
  bserver.listen(webPort, function(){
-    console.log('Web server start. http://localhost:' + webPort + '/');
+ console.log('Web server start. http://localhost:' + webPort + '/');
 });
 const wss=new WebSocket.Server({server:bserver});
-//const obi =require('proxy-observe');
 const mediasoup = require('mediasoup');
 const RTCPeerConnection = mediasoup.webrtc.RTCPeerConnection;
 const RTCSessionDescription = mediasoup.webrtc.RTCSessionDescription;
@@ -37,7 +36,6 @@ process.exit();
 })
 
 let Connections = new Array();
-//let clientIndex = 0;
 let droom=new Map();
 var nextId=Date.now();
 
@@ -153,7 +151,6 @@ var connect=getconnectionforid(ws,msg.id);
 //console.log('connect: ',connect);
 		
 if(msg.type=="message"){
-	console.log('MESSAGE???')
 if(connect){
 msg.name=connect.username;
 }
@@ -270,6 +267,8 @@ console.log('error closing the room: ',e);
 droom.get(ws.owner).close();
 }				  
 }
+	
+	
 })
 
 })
@@ -307,7 +306,7 @@ const capabilitySDP=message.capability;
 }
 
 function sendOffer(ws,peerconnection,downOnly){
-const id=ws.clientId;//getId(ws);
+const id=ws.clientId;
 	console.log('send offer to id= ',id);
 	let offerOption={offerToReceiveAudio:1,offerToReceiveVideo:1};
 	if(downOnly){

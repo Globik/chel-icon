@@ -110,38 +110,29 @@ function getClientCount() {
 
 wsServer.on('connection', function connection(ws) {
   console.log('client connected. id=' + getId(ws) + '  , total clients=' + getClientCount());
-	boom.on('fuck',dob=>{
+	function onfuck(dob){
 	console.log('DOB: ',dob);
-	console.log('doident()')
-//wsServer.clients.forEach((client)=>{
-console.log('FUCK FUCK FUCK');
-//if(client.readyState===WebSocket.OPEN){
 console.log('CLIENT SEND');
 	dob.type="roomcreated";
 	dob.toclient=getId(ws);
-		ws.send(JSON.stringify(dob));
-//}
-//})
-	});
+if(ws.readyState===1)ws.send(JSON.stringify(dob));
+	}
 	
-boom.on('genauroom',(bob)=>{
+function ongenauroom(bob){
 console.log('BOB: ',bob);
-//wsServer.clients.forEach((client)=>{
-//if(client.readyState===WebSocket.OPEN){
 console.log('CLIENT 2 SEND');
 bob.toclient=getId(ws);
-ws.send(JSON.stringify(bob));
-//}
-//})	
-
-})
+if(ws.readyState===1)ws.send(JSON.stringify(bob));
+}
+	
+boom.on('fuck',onfuck);
+boom.on('genauroom',ongenauroom)
 	
   ws.on('close', function () {
  console.log('client closed. id=' + getId(ws) + '  , total clients=' + getClientCount());
  cleanUpPeer(ws);
-	  //boom.removeListener('genauroom',st=>{console.log('!!!!!!!!!!!!!!!!st: ',st)})
-	  boom.removeAllListeners('genauroom');
-	  boom.removeAllListeners('fuck');
+	  boom.removeListener('genauroom',ongenauroom);
+	  boom.removeListener('fuck', onfuck);
 if(ws.owner){
 console.log('OWNER!!!!!');
 var wes=droom.get(ws.owner);
