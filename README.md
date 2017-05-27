@@ -8,3 +8,4 @@ Press "create room", press start video, press connect
 Open webrtc_watch.html
 Prerss connect.
 The same with webrtc_talk2.html and webrtc_watch2.html. It will be two mediarooms(alice and fischer);
+3. public3 - all files into one.
