@@ -1,5 +1,6 @@
 'use strict';
 const EventEmitter=require('events');
+var fs=require('fs');
 const WebSocket = require('ws');
 const http=require('http');
 
@@ -34,12 +35,16 @@ console.log('changes: ', ch)
 */
 // ----- mediasoup ----
 var boom=new EventEmitter();
+//var ssl_options={key:fss.readFileSync('server.key'),cert:fss.readFileSync('server.crt')};
+
 let server = mediasoup.Server({logLevel:"debug",
-							  //rtcIPv4:true,
-							 //  rtcIPv6:false,
-							 // rtcAnnouncedIPv4:null,
-							 // rtcAnnouncedIPv6:null,
-							  /* rtcMinPort:40000,rtcMaxPort:49999*/
+							  rtcIPv4:true,
+							 rtcIPv6:false,
+							 rtcAnnouncedIPv4:null,
+							 rtcAnnouncedIPv6:null,
+							  rtcMinPort:40000,rtcMaxPort:49999,
+							   dtlsCertificateFile:"/keys/server.crt",
+							   dtlsPrivateKeyFile:"/keys/server.key"
 							  });
 server.on('newroom',(r)=>{
 console.log('new room: ',r.id);
