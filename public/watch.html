@@ -42,12 +42,14 @@
 	var loc1=location.hostname+':'+location.port;
 	var loc2=location.hostname;
 	var loc3=loc1 ||  loc2;
-	var newuri;
+	var newuri='ws:';
+	/*
 	if(window.location.protocol="https:"){
 	newuri='wss:';
 	}else{
 	newuri='ws:';
 	}
+	*/
   let ws = new WebSocket(newuri+'//'+loc3);
   
   ws.onopen = function(evt) {

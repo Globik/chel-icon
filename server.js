@@ -37,18 +37,20 @@ console.log('changes: ', ch)
 var boom=new EventEmitter();
 //var ssl_options={key:fss.readFileSync('server.key'),cert:fss.readFileSync('server.crt')};
 
-let server = mediasoup.Server({logLevel:"debug",
-							  rtcIPv4:true,
+let server = mediasoup.Server({
+	                         logLevel:"debug",
+	                         logTags:["info","ice","dtls","rtp","srtp"/*,"rtcp","rtx","rbe"*/],
+							 rtcIPv4:true,
 							 rtcIPv6:false,
 							 rtcAnnouncedIPv4:null,
 							 rtcAnnouncedIPv6:null,
-							  rtcMinPort:40000,rtcMaxPort:49999,
-							   dtlsCertificateFile:"/keys/server.crt",
-							   dtlsPrivateKeyFile:"/keys/server.key"
+							 rtcMinPort:40000,rtcMaxPort:49999,
+							 dtlsCertificateFile:"keys/mycert.pem",
+							 dtlsPrivateKeyFile:"keys/mykey.pem"
 							  });
 server.on('newroom',(r)=>{
 console.log('new room: ',r.id);
-	boom.emit('fuck',{room_id:r.id});
+boom.emit('fuck',{room_id:r.id});
 });
 server.on('close',(er)=>{
 console.log('closing the mediasoup server');
@@ -330,7 +332,7 @@ function handleAnswer(ws, message) {
   const id = getId(ws);
   let peerconnection = getPeerConnection(id);
   if (! peerconnection) {
-    console.warn('WARN: connection not found. id=', id);
+    console.log('WARN: connection not found. id=', id);
     return;
   }
 
@@ -347,7 +349,7 @@ function handleAnswer(ws, message) {
     dumpPeer(peerconnection.peer, 'peer.dump after setRemoteDescription(re-answer):');
   })
   .catch( (err) => {
-    console.eror('setRemoteDescription for Answer ERROR:', err)
+    console.log('setRemoteDescription for Answer ERROR:', err)
   });
 }
 
@@ -382,7 +384,7 @@ function cleanUpPeer(ws,name) {
   const id = getId(ws);
   let peerconnection = getPeerConnection(id);
   if (! peerconnection) {
-    console.warn('WARN: cleanUpPeer(id) , connection not found. id=', id);
+    console.log('WARN: cleanUpPeer(id) , connection not found. id=', id);
     return;
   }
   
