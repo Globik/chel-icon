@@ -38,11 +38,12 @@
     document.getElementById('plan_b_check').checked = true;
   }
   // -------- websocket ----  
-  let wsUrl = 'ws://localhost:5000/';
+  //let wsUrl = 'wss://localhost:5000/';
+	var wsUrl='wss://'+'localhost'+':'+5000;
 	var loc1=location.hostname+':'+location.port;
 	var loc2=location.hostname;
 	var loc3=loc1 ||  loc2;
-	var newuri='ws:';
+	var newuri='wss:';
 	/*
 	if(window.location.protocol="https:"){
 	newuri='wss:';
@@ -51,6 +52,7 @@
 	}
 	*/
   let ws = new WebSocket(newuri+'//'+loc3);
+	console.log(newuri,'//',loc3);
   
   ws.onopen = function(evt) {
     console.log('ws open()');

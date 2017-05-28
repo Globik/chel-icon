@@ -381,12 +381,6 @@ return;
   console.log('PeerConnection close. id=' + id);
   peerconnection.close();
 	//droom.get.delete(name);
-  deletePeerConnection(id);
-
- if(droom.get(name)){ console.log('-- peers in the room = ' + droom.get(name).peers.length);}
-}
-
-function sendSDP(ws, sessionDescription) {
   const id = ws.clientId;//getId(ws);
   let message = { sendto: id, type: sessionDescription.type, sdp: sessionDescription.sdp };
   console.log('--- sending sdp ---');
@@ -394,5 +388,11 @@ function sendSDP(ws, sessionDescription) {
   console.log('sendto:' + message.sendto + '   type:' + message.type);
 
   // send via websocket
+  deletePeerConnection(id);
+
+ if(droom.get(name)){ console.log('-- peers in the room = ' + droom.get(name).peers.length);}
+}
+
+function sendSDP(ws, sessionDescription) {
   sendback(ws, message);
 }

@@ -2,18 +2,24 @@
 const EventEmitter=require('events');
 var fs=require('fs');
 const WebSocket = require('ws');
-const http=require('http');
-
+//const http=require('http');
+const https=require('https');
 const express = require('express');
 const app = express();
-
+var httpsops={
+key:fs.readFileSync('data/serverkey.pem'),
+cert:fs.readFileSync('data/servercert.pem'),
+passphrase:'globik'
+}
 app.use(express.static('public'));
-const bserver=http.createServer(app);
+const bserver=https.createServer(httpsops,app);
 const webPort =  5000;
- bserver.listen(webPort, function(){
+/* bserver.listen(webPort, function(){
     console.log('Web server start. http://localhost:' + webPort + '/');
-	 console.log('Or webserver start on: ',process.env.HOSTNAME);
 });
+*/
+bserver.listen(webPort);
+console.log(webPort);
 const wsServer=new WebSocket.Server({server:bserver});
 //const obi =require('proxy-observe');
 const mediasoup = require('mediasoup');
@@ -54,18 +60,18 @@ boom.emit('fuck',{room_id:r.id});
 });
 server.on('close',(er)=>{
 console.log('closing the mediasoup server');
-	//process.exit(0);
-	if(er){console.log(er);process.exit(1);}
+
+if(er){console.log(er);}
 })
 process.on('SIGTERM',()=>{
 console.log('sigterminated');
 server.close();
-	ptocess.exit();
+process.exit();
 })
 process.on('SIGINT',()=>{
 console.log('sigint fired');
-	server.close();
-	process.exit();
+server.close();
+process.exit();
 })
 /*
 server.createRoom(roomOptions)

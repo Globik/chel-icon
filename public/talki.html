@@ -43,7 +43,7 @@
     document.getElementById('plan_b_check').checked = true;
   }
   // -------- websocket ----  
-  let wsUrl = 'ws://localhost:5000/';
+  let wsUrl = 'wss://localhost:5000/';
 	
   let ws = new WebSocket(wsUrl);
   ws.onopen = function(evt) {
